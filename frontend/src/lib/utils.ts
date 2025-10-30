@@ -17,13 +17,23 @@ export function formatDuration(seconds: number): string {
 
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Ensure valid date
+  if (isNaN(d.getTime())) {
+    return 'Invalid date';
+  }
+  
+  // Add 2 hours for Israel timezone (UTC+2)
+  const israelTime = new Date(d.getTime() + (2 * 60 * 60 * 1000));
+  
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(d);
+    hour12: false, // Use 24-hour format
+  }).format(israelTime);
 }
 
 export function getTimeAgo(date: Date | string): string {

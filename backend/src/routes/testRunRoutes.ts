@@ -6,6 +6,7 @@ import {
   updateTestRun,
   getDashboardMetrics,
   getSystemHealth,
+  stopTestRun,
 } from '../controllers/testRunController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -18,6 +19,7 @@ router.get('/runs', getAllTestRuns);
 router.get('/runs/:id', getTestRunById);
 router.post('/runs', createTestRun);
 router.put('/runs/:id', updateTestRun);
+router.post('/runs/:id/stop', stopTestRun);
 
 router.get('/dashboard/metrics', getDashboardMetrics);
 router.get('/dashboard/system-health', getSystemHealth);

@@ -355,3 +355,74 @@ export const getSystemHealth = async (
     });
   }
 };
+
+export const stopTestRun = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Check if test run exists
+    const runResult = await pool.query(
+      'SELECT * FROM test_runs WHERE id = $1',
+      [id]
+    );
+
+    if (runResult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'Test run not found',
+      });
+      return;
+    }
+
+    const testRun = runResult.rows[0];
+
+    // Only allow stopping running or pending tests
+    if (testRun.status !== 'running' && testRun.status !== 'pending') {
+      res.status(400).json({
+        success: false,
+        error: 'Test run is not active',
+      });
+      return;
+    }
+
+    // Update test run status to failed (stopped)
+    await pool.query(
+      `UPDATE test_runs
+       SET status = 'failed', completed_at = CURRENT_TIMESTAMP, duration = EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - started_at)) * 1000
+       WHERE id = $1`,
+      [id]
+    );
+
+    // Update all pending test results to skipped
+    await pool.query(
+      `UPDATE test_results
+       SET status = 'skipped', completed_at = CURRENT_TIMESTAMP
+       WHERE test_run_id = $1 AND status IN ('pending', 'running')`,
+      [id]
+    );
+
+    // Update test cases to skipped
+    await pool.query(
+      `UPDATE test_cases
+       SET status = 'skipped'
+       WHERE id IN (
+         SELECT test_case_id FROM test_results WHERE test_run_id = $1
+       ) AND status IN ('pending', 'running')`,
+      [id]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Test run stopped successfully',
+    });
+  } catch (error) {
+    console.error('Stop test run error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};

@@ -99,6 +99,21 @@ class ApiClient {
     return response.data;
   }
 
+  async discoverTests() {
+    const response = await this.client.post('/tests/discover');
+    return response.data;
+  }
+
+  async executeTestFile(fileId: string) {
+    const response = await this.client.post(`/tests/files/${fileId}/execute`);
+    return response.data;
+  }
+
+  async cleanupTestFiles() {
+    const response = await this.client.delete('/tests/cleanup');
+    return response.data;
+  }
+
   // Test Runs endpoints
   async getTestRuns(params?: { status?: string; limit?: number }) {
     const response = await this.client.get('/test-runs/runs', { params });
@@ -117,6 +132,11 @@ class ApiClient {
 
   async updateTestRun(id: string, data: any) {
     const response = await this.client.put(`/test-runs/runs/${id}`, data);
+    return response.data;
+  }
+
+  async stopTestRun(id: string) {
+    const response = await this.client.post(`/test-runs/runs/${id}/stop`);
     return response.data;
   }
 
