@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
 import { TestCase, TestFile } from '../../../shared/types';
+import { testDiscoveryService } from '../services/testDiscoveryService';
+import { testExecutionService } from '../services/testExecutionService';
 
 export const getAllTestCases = async (
   req: Request,
@@ -300,6 +302,79 @@ export const getAllTestFiles = async (
     res.status(500).json({
       success: false,
       error: 'Internal server error',
+    });
+  }
+};
+
+export const discoverTests = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const result = await testDiscoveryService.discoverAndRegisterAllTests();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        discovered: result.count,
+        tests: result.tests,
+      },
+      message: `Successfully discovered and registered ${result.count} test file(s)`,
+    });
+  } catch (error) {
+    console.error('Test discovery error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to discover tests',
+    });
+  }
+};
+
+export const executeTestFile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Start test execution asynchronously
+    testExecutionService.executeTestFile(id).catch((error) => {
+      console.error('Test execution error:', error);
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Test execution started',
+    });
+  } catch (error) {
+    console.error('Execute test file error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to start test execution',
+    });
+  }
+};
+
+export const cleanupTestFiles = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Delete all test cases first (foreign key constraint)
+    await pool.query('DELETE FROM test_cases');
+    
+    // Delete all test files
+    await pool.query('DELETE FROM test_files');
+
+    res.status(200).json({
+      success: true,
+      message: 'All test files and cases have been removed. Click "Discover Tests" to re-scan.',
+    });
+  } catch (error) {
+    console.error('Cleanup test files error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to cleanup test files',
     });
   }
 };

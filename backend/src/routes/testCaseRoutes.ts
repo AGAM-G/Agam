@@ -6,6 +6,9 @@ import {
   updateTestCase,
   deleteTestCase,
   getAllTestFiles,
+  discoverTests,
+  executeTestFile,
+  cleanupTestFiles,
 } from '../controllers/testCaseController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -21,5 +24,8 @@ router.put('/cases/:id', updateTestCase);
 router.delete('/cases/:id', deleteTestCase);
 
 router.get('/files', getAllTestFiles);
+router.post('/discover', discoverTests);
+router.post('/files/:id/execute', executeTestFile);
+router.delete('/cleanup', cleanupTestFiles);
 
 export default router;
