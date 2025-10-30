@@ -50,15 +50,11 @@ export const DarkModeProvider = ({ children }: { children: ReactNode }) => {
     }
     // Save to localStorage
     localStorage.setItem('darkMode', String(isDarkMode));
-
-    // Log for debugging
-    console.log('Dark mode:', isDarkMode, '- Class applied:', root.classList.contains('dark'));
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     setIsDarkMode((prev) => {
       const newValue = !prev;
-      console.log('Toggling dark mode from', prev, 'to', newValue);
       return newValue;
     });
   };
