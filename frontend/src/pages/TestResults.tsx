@@ -5,19 +5,7 @@ import TestDetailsModal from '../components/TestDetailsModal';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/utils';
 
-interface TestFile {
-  id: string;
-  name: string;
-  path: string;
-  type: string;
-  suite: string;
-  status: string;
-  modified_at: string;
-  testCases: any[];
-}
-
 const TestResults = () => {
-  const [testFiles, setTestFiles] = useState<TestFile[]>([]);
   const [testRuns, setTestRuns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('All Status');
@@ -26,12 +14,8 @@ const TestResults = () => {
   const fetchTestResults = async () => {
     setLoading(true);
     try {
-      const [filesRes, runsRes] = await Promise.all([
-        api.getTestFiles(),
-        api.getTestRuns({ limit: 10 }),
-      ]);
+      const runsRes = await api.getTestRuns({ limit: 10 });
 
-      if (filesRes.success) setTestFiles(filesRes.data);
       if (runsRes.success) setTestRuns(runsRes.data);
     } catch (error) {
       console.error('Failed to fetch test results:', error);
@@ -89,12 +73,12 @@ const TestResults = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Test Results" onRefresh={fetchTestResults} />
 
-      <div className="p-8">
+      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-4 space-y-4">
         {/* Search and Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -126,8 +110,8 @@ const TestResults = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
                 <div className="w-6 h-6 text-green-600 dark:text-green-400 font-bold flex items-center justify-center">
@@ -141,7 +125,7 @@ const TestResults = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
                 <div className="w-6 h-6 text-red-600 dark:text-red-400 font-bold flex items-center justify-center">
@@ -155,7 +139,7 @@ const TestResults = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                 <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -167,7 +151,7 @@ const TestResults = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
                 <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
@@ -182,14 +166,14 @@ const TestResults = () => {
 
         {/* Recent Test Runs */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Test Runs</h2>
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">Recent Test Runs</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Latest {testRuns.length} test executions
             </p>
           </div>
 
-          <div className="p-6">
+          <div className="p-4">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -205,11 +189,11 @@ const TestResults = () => {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {testRuns.map((run) => (
                   <div
                     key={run.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start space-x-3 flex-1">
