@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Search, Download, Filter, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import Header from '../components/layout/Header';
+import { Header } from '../components/layout';
 import TestDetailsModal from '../components/TestDetailsModal';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/utils';

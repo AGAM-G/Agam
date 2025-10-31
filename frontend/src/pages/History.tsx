@@ -11,7 +11,7 @@ import {
   FileCode,
   ChevronRight,
 } from 'lucide-react';
-import Header from '../components/layout/Header';
+import { Header } from '../components/layout';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/utils';
 

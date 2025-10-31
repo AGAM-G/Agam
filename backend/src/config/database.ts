@@ -9,9 +9,9 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'test_automation_hub',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
-  max: 20,
+  max: 30, // Increased pool size for concurrent test executions
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000, // Increased from 2s to 10s to handle concurrent test runs better
 });
 
 // Test the connection

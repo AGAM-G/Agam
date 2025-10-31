@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
-import Header from '../components/layout/Header';
+import { Header } from '../components/layout';
 import TestDetailsModal from '../components/TestDetailsModal';
 import ConfirmModal from '../components/ConfirmModal';
-import TestControlsBar from '../components/test-runner/TestControlsBar';
-import TestCard from '../components/test-runner/TestCard';
-import EmptyTestState from '../components/test-runner/EmptyTestState';
-import { showNotification } from '../components/ui/NotificationToast';
+import { TestControlsBar, TestCard, EmptyTestState } from '../components/test-runner';
+import { showNotification } from '../components/ui';
 import { api } from '../lib/api';
+import { clearAnalyticsCache } from './Analytics';
 
 interface TestFile {
   id: string;
@@ -40,6 +39,9 @@ const TestRunner = () => {
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [testRunToStop, setTestRunToStop] = useState<string | null>(null);
   const [showCleanupConfirm, setShowCleanupConfirm] = useState(false);
+  
+  // Track previous test run statuses to detect completions
+  const previousTestRunsRef = useRef<Map<string, string>>(new Map());
 
   const fetchTestFiles = async () => {
     setLoading(true);
@@ -123,6 +125,31 @@ const TestRunner = () => {
           });
 
           console.log('📊 Active test runs:', recentTests.map((r: ActiveTestRun) => ({ name: r.name, status: r.status })));
+          
+          // Detect test completions (transition from running to passed/failed)
+          let hasCompletedTests = false;
+          recentTests.forEach((run: ActiveTestRun) => {
+            const previousStatus = previousTestRunsRef.current.get(run.id);
+            const currentStatus = run.status;
+            
+            // Check if test just completed
+            if (
+              previousStatus === 'running' &&
+              (currentStatus === 'passed' || currentStatus === 'failed')
+            ) {
+              hasCompletedTests = true;
+              console.log(`✅ Test completed: ${run.name} - ${currentStatus}`);
+            }
+            
+            // Update previous status
+            previousTestRunsRef.current.set(run.id, currentStatus);
+          });
+          
+          // Clear analytics cache when any test completes
+          if (hasCompletedTests) {
+            clearAnalyticsCache();
+          }
+          
           setActiveTestRuns(recentTests);
         }
       } catch (error) {
