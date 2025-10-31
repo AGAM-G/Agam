@@ -1,4 +1,4 @@
-import Header from '../components/layout/Header';
+import { Header } from '../components/layout';
 import { Settings as SettingsIcon } from 'lucide-react';
 
 const Settings = () => {

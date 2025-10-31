@@ -6,22 +6,18 @@ import {
   XCircle,
   Clock,
 } from 'lucide-react';
-import Header from '../components/layout/Header';
-import QuickActions from '../components/dashboard/QuickActions';
-import ServerStatus from '../components/dashboard/serverStatus';
-import SystemHealth from '../components/dashboard/SystemHealth';
-import RecentTestRuns from '../components/dashboard/RecentTestRuns';
+import { Header } from '../components/layout';
+import { QuickActions, ServerStatus, SystemHealth, RecentTestRuns } from '../components/dashboard';
 import { api } from '../lib/api';
+import { calculateMetrics } from '../lib/analyticsCalculations';
 
 interface DashboardMetrics {
-  totalTests: number;
-  totalTestsChange: number;
+  totalRuns: number;
   successRate: number;
   successRateChange: number;
   failedTests: number;
-  failedTestsChange: number;
   avgDuration: number;
-  avgDurationChange: number;
+  totalTestsExecuted: number;
 }
 
 interface SystemHealth {
@@ -47,15 +43,29 @@ const Dashboard = () => {
   const [recentRuns, setRecentRuns] = useState<TestRun[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const formatDuration = (ms: number) => {
+    if (ms < 1000) return `${Math.round(ms)}ms`;
+    const seconds = Math.floor(ms / 1000);
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+
   const fetchDashboardData = async () => {
     try {
-      const [metricsRes, healthRes, runsRes] = await Promise.all([
-        api.getDashboardMetrics(),
+      const [healthRes, runsRes, allRunsRes] = await Promise.all([
         api.getSystemHealth(),
-        api.getTestRuns({ limit: 5 }),
+        api.getTestRuns({ limit: 5 }), // For recent test runs display
+        api.getTestRuns({ limit: 500 }), // For metrics calculation
       ]);
 
-      if (metricsRes.success) setMetrics(metricsRes.data);
+      // Calculate metrics using shared calculation logic (same as Analytics page)
+      if (allRunsRes.success) {
+        const calculatedMetrics = calculateMetrics(allRunsRes.data, 7); // Last 7 days
+        setMetrics(calculatedMetrics);
+      }
+      
       if (healthRes.success) setSystemHealth(healthRes.data);
       if (runsRes.success) setRecentRuns(runsRes.data);
     } catch (error) {
@@ -134,9 +144,9 @@ const Dashboard = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <MetricCard
-              title="Total Tests"
-              value={metrics?.totalTests || 0}
-              change={metrics?.totalTestsChange || 0}
+              title="Test Runs (7d)"
+              value={metrics?.totalRuns || 0}
+              change={0}
               icon={Target}
               color="bg-blue-50 text-blue-600"
             />
@@ -150,14 +160,14 @@ const Dashboard = () => {
             <MetricCard
               title="Failed Tests"
               value={metrics?.failedTests || 0}
-              change={metrics?.failedTestsChange || 0}
+              change={0}
               icon={XCircle}
               color="bg-red-50 text-red-600"
             />
             <MetricCard
               title="Avg Duration"
-              value={`${metrics?.avgDuration || 0}s`}
-              change={metrics?.avgDurationChange || 0}
+              value={formatDuration(metrics?.avgDuration || 0)}
+              change={0}
               icon={Clock}
               color="bg-purple-50 text-purple-600"
             />
