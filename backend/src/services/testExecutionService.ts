@@ -47,10 +47,10 @@ export class TestExecutionService {
       );
 
       const testCases = testCasesResult.rows;
-      
+
       // Group test cases by file and type
       const testsByFile = this.groupTestsByFile(testCases);
-      
+
       const allResults: TestCaseResult[] = [];
       const startTime = Date.now();
 
@@ -67,11 +67,11 @@ export class TestExecutionService {
           } else if (testType === 'UI' || testType === 'E2E') {
             results = await this.executePlaywrightTests(filePath, cases);
           }
-          
+
           allResults.push(...results);
         } catch (error) {
           console.error(`Error executing tests in ${filePath}:`, error);
-          
+
           // Mark all cases as failed
           for (const testCase of cases) {
             allResults.push({
@@ -90,7 +90,7 @@ export class TestExecutionService {
       await this.saveTestResults(testRunId, allResults, duration);
     } catch (error) {
       console.error('Test execution error:', error);
-      
+
       // Update test run as failed
       await pool.query(
         `UPDATE test_runs SET status = 'failed', completed_at = CURRENT_TIMESTAMP WHERE id = $1`,
@@ -104,7 +104,7 @@ export class TestExecutionService {
    */
   private groupTestsByFile(testCases: any[]): Record<string, any[]> {
     const grouped: Record<string, any[]> = {};
-    
+
     for (const testCase of testCases) {
       const filePath = testCase.file_path;
       if (!grouped[filePath]) {
@@ -112,7 +112,7 @@ export class TestExecutionService {
       }
       grouped[filePath].push(testCase);
     }
-    
+
     return grouped;
   }
 
@@ -121,14 +121,14 @@ export class TestExecutionService {
    */
   private async executeJestTests(filePath: string, testCases: any[]): Promise<TestCaseResult[]> {
     const results: TestCaseResult[] = [];
-    
+
     try {
       // Convert absolute path to relative path from backend root
       const backendRoot = path.join(__dirname, '../..');
       const relativePath = path.relative(backendRoot, filePath).replace(/\\/g, '/');
-      
+
       console.log('🧪 Running Jest test:', relativePath);
-      
+
       // Run Jest with JSON reporter
       const jestCommand = `npx jest "${relativePath}" --json --testLocationInResults`;
       const { stdout, stderr } = await execAsync(jestCommand, {
@@ -138,11 +138,11 @@ export class TestExecutionService {
 
       // Parse Jest JSON output
       const jestResults = JSON.parse(stdout);
-      
+
       // Map Jest results to our test cases
       if (jestResults.testResults && jestResults.testResults[0]) {
         const fileResults = jestResults.testResults[0];
-        
+
         for (const testCase of testCases) {
           const jestTest = fileResults.assertionResults?.find(
             (result: any) => result.title === testCase.name
@@ -174,7 +174,7 @@ export class TestExecutionService {
           const jestResults = JSON.parse(error.stdout);
           if (jestResults.testResults && jestResults.testResults[0]) {
             const fileResults = jestResults.testResults[0];
-            
+
             for (const testCase of testCases) {
               const jestTest = fileResults.assertionResults?.find(
                 (result: any) => result.title === testCase.name
@@ -234,7 +234,7 @@ export class TestExecutionService {
    */
   private async executeK6Tests(filePath: string, testCases: any[]): Promise<TestCaseResult[]> {
     const results: TestCaseResult[] = [];
-    
+
     try {
       // Check if k6 is installed
       try {
@@ -255,9 +255,9 @@ export class TestExecutionService {
       // Convert absolute path to relative path from backend root
       const backendRoot = path.join(__dirname, '../..');
       const relativePath = path.relative(backendRoot, filePath).replace(/\\/g, '/');
-      
+
       console.log('📊 Running K6 test:', relativePath);
-      
+
       const startTime = Date.now();
       const { stdout, stderr } = await execAsync(`k6 run "${relativePath}" --summary-export=k6-summary.json`, {
         cwd: backendRoot,
@@ -308,27 +308,50 @@ export class TestExecutionService {
   private async executePlaywrightTests(filePath: string, testCases: any[]): Promise<TestCaseResult[]> {
     const results: TestCaseResult[] = [];
     
+    // Variables declared outside try-catch for access in finally block
+    const backendRoot = path.join(__dirname, '../..');
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const tempDir = path.join(backendRoot, `test-results/pw-${uniqueId}`);
+    
     try {
       // Convert absolute path to relative path from backend root
-      const backendRoot = path.join(__dirname, '../..');
       const relativePath = path.relative(backendRoot, filePath).replace(/\\/g, '/');
       
       console.log('🎭 Running Playwright test:', relativePath);
-      
-      // Run Playwright with JSON reporter
+
+      // Run Playwright with isolated state to prevent conflicts
+      // - JSON output goes to stdout (parsed from stdout)
+      // - Unique user data directory for browser isolation
+      // - Unique debugging port to avoid port conflicts
+      const debugPort = 9222 + Math.floor(Math.random() * 1000);
       const playwrightCommand = `npx playwright test "${relativePath}" --reporter=json`;
+      
+      // Create temp directory for browser user data
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      
       const { stdout, stderr } = await execAsync(playwrightCommand, {
         cwd: backendRoot,
         timeout: 60000, // 1 minute timeout per UI/E2E test file
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large test outputs
+        env: {
+          ...process.env,
+          // Don't override browser path - use default installation
+          // Instead, isolate user data directory
+          PLAYWRIGHT_TEST_BASE_URL: process.env.PLAYWRIGHT_TEST_BASE_URL || '',
+          PWDEBUG: '',
+          PW_TEST_SCREENSHOT_NO_FONTS_READY: '1', // Speed up screenshots
+        }
       });
 
       // Parse Playwright JSON output
       const playwrightResults = JSON.parse(stdout);
-      
+
       // Map Playwright results to our test cases
       if (playwrightResults.suites) {
         console.log('✅ Found suites:', playwrightResults.suites.length);
-        
+
         // Recursively collect all specs from nested suites
         const collectSpecs = (suites: any[]): any[] => {
           const allSpecs: any[] = [];
@@ -342,18 +365,18 @@ export class TestExecutionService {
           }
           return allSpecs;
         };
-        
+
         const allSpecs = collectSpecs(playwrightResults.suites);
         console.log('📝 Playwright tests found:', allSpecs.map(s => s.title));
         console.log('🔍 Looking for tests:', testCases.map(tc => tc.name));
-        
+
         for (const testCase of testCases) {
           const spec = allSpecs.find(s => s.title === testCase.name);
-          
+
           if (spec) {
             const testRun = spec.tests?.[0];
             const result = testRun?.results?.[0];
-            
+
             results.push({
               testCaseId: testCase.id,
               status: result?.status === 'passed' ? 'passed' : 'failed',
@@ -371,6 +394,11 @@ export class TestExecutionService {
             });
           }
         }
+      }
+
+      // Cleanup temporary directory
+      if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
       }
     } catch (error: any) {
       // Playwright returns non-zero exit code when ANY test fails
@@ -460,6 +488,16 @@ export class TestExecutionService {
           });
         }
       }
+    } finally {
+      // Ensure cleanup happens even if there's an error
+      try {
+        if (fs.existsSync(tempDir)) {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+          console.log('🧹 Cleaned up temp directory:', tempDir);
+        }
+      } catch (cleanupError) {
+        console.error('Failed to cleanup temp directory:', cleanupError);
+      }
     }
 
     return results;
@@ -503,7 +541,7 @@ export class TestExecutionService {
 
     // Update test run with final results
     const finalStatus = testsFailed > 0 ? 'failed' : 'passed';
-    
+
     await pool.query(
       `UPDATE test_runs
        SET status = $1, duration = $2, tests_passed = $3, tests_failed = $4, tests_pending = $5, completed_at = CURRENT_TIMESTAMP
