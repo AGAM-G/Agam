@@ -77,7 +77,7 @@ const TestRunner = () => {
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
-        
+
         await fetchTestFiles();
       }
     } catch (error) {
@@ -108,7 +108,7 @@ const TestRunner = () => {
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
-        
+
         await fetchTestFiles();
       }
     } catch (error) {
@@ -135,16 +135,16 @@ const TestRunner = () => {
             if (run.status === 'running' || run.status === 'pending') {
               return true;
             }
-            
+
             // Include recently completed tests (within last 5 seconds)
             if (run.status === 'passed' || run.status === 'failed') {
               const completedAt = new Date(run.completed_at).getTime();
               return (now - completedAt) < 5000;
             }
-            
+
             return false;
           });
-          
+
           console.log('📊 Active test runs:', recentTests.map((r: ActiveTestRun) => ({ name: r.name, status: r.status })));
           setActiveTestRuns(recentTests);
         }
@@ -163,20 +163,13 @@ const TestRunner = () => {
     // Check if this test is already running (match by name or suite)
     const isAlreadyRunning = activeTestRuns.some(
       run => (
-        (run.name === file.name || 
-         run.name === file.suite ||
-         run.name.includes(file.name) ||
-         file.name.includes(run.name)) &&
+        (run.name === file.name ||
+          run.name === file.suite ||
+          run.name.includes(file.name) ||
+          file.name.includes(run.name)) &&
         (run.status === 'running' || run.status === 'pending')
       )
     );
-    
-    console.log('🎯 Check if running:', { 
-      fileName: file.name, 
-      suite: file.suite,
-      isAlreadyRunning,
-      activeRuns: activeTestRuns.map((r: ActiveTestRun) => ({ name: r.name, status: r.status }))
-    });
 
     if (isAlreadyRunning) {
       // Show notification that test is already running
@@ -206,27 +199,25 @@ const TestRunner = () => {
           status: 'pending',
           started_at: new Date().toISOString(),
         };
-        console.log('✅ Created temp run:', newRun);
         setActiveTestRuns(prev => [newRun, ...prev]);
-        
+
         // Poll for the actual run to appear
         setTimeout(async () => {
           try {
             const runsResponse = await api.getTestRuns({ limit: 10 });
             if (runsResponse.success && runsResponse.data.length > 0) {
               // Find the latest run that matches this file
-              const latestRun = runsResponse.data.find((run: any) => 
-                run.name === file.suite || 
+              const latestRun = runsResponse.data.find((run: any) =>
+                run.name === file.suite ||
                 run.name === file.name ||
                 run.name.includes(file.name) ||
                 file.name.includes(run.name)
               );
-              
+
               if (latestRun) {
-                console.log('🔄 Updating temp run with real run:', latestRun);
                 // Update with real test run ID
-                setActiveTestRuns(prev => 
-                  prev.map(run => 
+                setActiveTestRuns(prev =>
+                  prev.map(run =>
                     run.id.startsWith(`temp-${file.id}`)
                       ? { ...latestRun, id: latestRun.id }
                       : run
@@ -279,13 +270,13 @@ const TestRunner = () => {
 
         // Remove from active tests
         handleRemoveNotification(testRunToStop);
-        
+
         // Refresh test files to update status
         await fetchTestFiles();
       }
     } catch (error) {
       console.error('Failed to stop test run:', error);
-      
+
       const notification = document.createElement('div');
       notification.className = 'fixed top-4 right-4 z-50 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 shadow-lg';
       notification.innerHTML = `
@@ -419,50 +410,37 @@ const TestRunner = () => {
                 {filteredFiles.map((file) => {
                   // Find if this file has an active test run
                   // Match by name (could be test name or suite name)
-                  const activeRun = activeTestRuns.find(run => 
-                    run.name === file.name || 
+                  const activeRun = activeTestRuns.find(run =>
+                    run.name === file.name ||
                     run.name === file.suite ||
                     run.name.includes(file.name) ||
                     file.name.includes(run.name)
                   );
                   const isRunning = activeRun?.status === 'running' || activeRun?.status === 'pending';
                   const justCompleted = activeRun && (activeRun.status === 'passed' || activeRun.status === 'failed');
-                  
-                  // Debug logging
-                  if (activeRun) {
-                    console.log('🔍 Match found:', {
-                      fileName: file.name,
-                      runName: activeRun.name,
-                      status: activeRun.status,
-                      isRunning,
-                      justCompleted
-                    });
-                  }
 
                   return (
                     <div
                       key={file.id}
-                      className={`border rounded-lg p-6 transition-all ${
-                        isRunning 
-                          ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
+                      className={`border rounded-lg p-6 transition-all ${isRunning
+                          ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg'
                           : justCompleted
-                          ? activeRun.status === 'passed'
-                            ? 'border-green-400 dark:border-green-500 bg-green-50 dark:bg-green-900/20'
-                            : 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
-                      }`}
+                            ? activeRun.status === 'passed'
+                              ? 'border-green-400 dark:border-green-500 bg-green-50 dark:bg-green-900/20'
+                              : 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                        }`}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start space-x-3 flex-1">
-                          <div className={`p-2 rounded-lg ${
-                            isRunning 
-                              ? 'bg-blue-100 dark:bg-blue-800' 
+                          <div className={`p-2 rounded-lg ${isRunning
+                              ? 'bg-blue-100 dark:bg-blue-800'
                               : justCompleted && activeRun.status === 'passed'
-                              ? 'bg-green-100 dark:bg-green-800'
-                              : justCompleted && activeRun.status === 'failed'
-                              ? 'bg-red-100 dark:bg-red-800'
-                              : 'bg-gray-100 dark:bg-gray-700'
-                          }`}>
+                                ? 'bg-green-100 dark:bg-green-800'
+                                : justCompleted && activeRun.status === 'failed'
+                                  ? 'bg-red-100 dark:bg-red-800'
+                                  : 'bg-gray-100 dark:bg-gray-700'
+                            }`}>
                             {isRunning ? (
                               <Loader2 className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
                             ) : justCompleted && activeRun.status === 'passed' ? (
@@ -529,11 +507,10 @@ const TestRunner = () => {
                               <Eye className="w-4 h-4" />
                               <span>View Results</span>
                             </button>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              activeRun.status === 'passed' 
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${activeRun.status === 'passed'
                                 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                                 : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                            }`}>
+                              }`}>
                               {activeRun.status}
                             </span>
                           </div>
@@ -547,13 +524,12 @@ const TestRunner = () => {
                               <Play className="w-4 h-4" />
                               <span>Run Tests</span>
                             </button>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              file.status === 'passed' 
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${file.status === 'passed'
                                 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                                 : file.status === 'failed'
-                                ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                            }`}>
+                                  ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                              }`}>
                               {file.status}
                             </span>
                           </>

@@ -38,7 +38,7 @@ test.describe('Wikipedia E2E - Search Flow', () => {
     await expect(page).toHaveURL(/es\.wikipedia\.org/);
     
     // Verify Spanish page loaded
-    const spanishContent = page.locator('#content, body');
+    const spanishContent = page.locator('#content');
     await expect(spanishContent).toBeVisible();
     
     // Go back and navigate to German
@@ -48,7 +48,7 @@ test.describe('Wikipedia E2E - Search Flow', () => {
     await expect(page).toHaveURL(/de\.wikipedia\.org/);
     
     // Verify German page loaded
-    const germanContent = page.locator('#content, body');
+    const germanContent = page.locator('#content');
     await expect(germanContent).toBeVisible();
     
     // Verify both navigations worked
@@ -67,16 +67,18 @@ test.describe('Wikipedia E2E - Article Interaction', () => {
     // Check table of contents exists
     const toc = page.locator('#toc, .vector-toc');
     await expect(toc).toBeVisible();
-    
+
     // Scroll through article
+    // @ts-expect-error - window is available in browser context
     await page.evaluate(() => window.scrollBy(0, 500));
     
     // Check for references section
     await page.evaluate(() => {
+      // @ts-expect-error - document is available in browser context
       const referencesHeading = Array.from(document.querySelectorAll('h2'))
-        .find(h => h.textContent?.includes('References'));
+        .find((h: any) => h.textContent?.includes('References'));
       if (referencesHeading) {
-        referencesHeading.scrollIntoView();
+        (referencesHeading as any).scrollIntoView();
       }
     });
     

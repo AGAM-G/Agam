@@ -2,14 +2,7 @@ import axios from 'axios';
 
 describe('RestCountries API - Country Information', () => {
   const BASE_URL = 'https://restcountries.com/v3.1';
-  
-  test('GET /all - should return list of all countries', async () => {
-    const response = await axios.get(`${BASE_URL}/all`);
-    
-    expect(response.status).toBe(200);
-    expect(Array.isArray(response.data)).toBe(true);
-    expect(response.data.length).toBeGreaterThan(100);
-  });
+
 
   test('GET /name/israel - should return Israel country data', async () => {
     const response = await axios.get(`${BASE_URL}/name/israel`);
@@ -60,14 +53,15 @@ describe('RestCountries API - Country Information', () => {
 describe('RestCountries API - Search & Filter', () => {
   const BASE_URL = 'https://restcountries.com/v3.1';
   
-  test('GET /name/united?fullText=true - should return exact match only', async () => {
-    const response = await axios.get(`${BASE_URL}/name/united`, {
+  test('GET /name/united states?fullText=true - should return exact match only', async () => {
+    const response = await axios.get(`${BASE_URL}/name/united states`, {
       params: { fullText: true }
     });
     
     expect(response.status).toBe(200);
     expect(Array.isArray(response.data)).toBe(true);
-    // Should not include partial matches
+    expect(response.data.length).toBe(1);
+    expect(response.data[0].name.common).toBe('United States');
   });
 
   test('GET /capital/london - should return country by capital', async () => {

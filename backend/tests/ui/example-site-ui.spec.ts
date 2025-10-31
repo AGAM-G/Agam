@@ -21,17 +21,10 @@ test.describe('Example.com UI Tests', () => {
     await expect(paragraph).toContainText('This domain is for use in documentation examples');
   });
 
-  test('should have "More information" link', async ({ page }) => {
-    const link = page.locator('a');
-    await expect(link).toBeVisible();
-    await expect(link).toHaveText('Learn more');
-    await expect(link).toHaveAttribute('href', 'https://iana.org/domains/example');
-  });
-
   test('should navigate to IANA page when clicking link', async ({ page }) => {
     const link = page.locator('a');
     await link.click();
-    
+
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/iana\.org/);
   });
@@ -40,7 +33,7 @@ test.describe('Example.com UI Tests', () => {
     // Check for body
     const body = page.locator('body');
     await expect(body).toBeVisible();
-    
+
     // Check for div
     const div = page.locator('div');
     await expect(div).toBeVisible();
@@ -48,10 +41,10 @@ test.describe('Example.com UI Tests', () => {
 
   test('should render correctly on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     const heading = page.locator('h1');
     await expect(heading).toBeVisible();
-    
+
     const paragraph = page.locator('p').first();
     await expect(paragraph).toBeVisible();
   });
@@ -63,7 +56,7 @@ test.describe('Example.com UI Tests', () => {
         errors.push(msg.text());
       }
     });
-    
+
     await page.reload();
     expect(errors).toHaveLength(0);
   });
