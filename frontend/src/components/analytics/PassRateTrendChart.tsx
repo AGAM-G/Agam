@@ -1,11 +1,4 @@
-interface DailyStats {
-  date: string;
-  totalRuns: number;
-  passedRuns: number;
-  failedRuns: number;
-  passRate: number;
-  avgDuration: number;
-}
+import { type DailyStats } from '../../lib/analyticsCalculations';
 
 interface PassRateTrendChartProps {
   data: DailyStats[];

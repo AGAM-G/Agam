@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Header } from '../components/layout';
 import { BarChart3 } from 'lucide-react';
 import { api } from '../lib/api';
-import { calculateMetrics } from '../lib/analyticsCalculations';
+import { calculateAnalytics, type TestRun, type AnalyticsData } from '../lib/analyticsCalculations';
 import {
   AnalyticsHeader,
   StatsCards,
@@ -10,39 +10,6 @@ import {
   SlowestTestsTable,
   ExecutionVolumeChart,
 } from '../components/analytics';
-
-interface TestRun {
-  id: string;
-  run_id: string;
-  name: string;
-  status: 'pending' | 'running' | 'passed' | 'failed';
-  duration: number;
-  started_at: string;
-  completed_at?: string;
-  tests_passed: number;
-  tests_failed: number;
-  tests_pending: number;
-  total_tests: number;
-}
-
-interface DailyStats {
-  date: string;
-  totalRuns: number;
-  passedRuns: number;
-  failedRuns: number;
-  passRate: number;
-  avgDuration: number;
-}
-
-interface AnalyticsData {
-  totalRuns: number;
-  overallPassRate: number;
-  avgDuration: number;
-  totalTestsExecuted: number;
-  passRateTrend: number; // percentage change from previous period
-  dailyStats: DailyStats[];
-  slowestTests: TestRun[];
-}
 
 const Analytics = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -171,80 +138,6 @@ const Analytics = () => {
 
     return () => clearInterval(interval);
   }, [lastCheckTimestamp, timeRange]); // Re-run when timestamp or timeRange changes
-
-  /**
-   * CALCULATION LOGIC:
-   * This function processes all test runs and calculates:
-   * 1. Overall statistics (total runs, pass rate, avg duration) - using shared calculation
-   * 2. Daily aggregations for trend charts
-   * 3. Comparison with previous period for trend indicators
-   */
-  const calculateAnalytics = (runs: TestRun[], days: number): AnalyticsData => {
-    const now = new Date();
-    const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-
-    // Use shared calculation logic (same as Dashboard)
-    const metrics = calculateMetrics(runs, days);
-
-    // Filter runs for current period for additional analytics
-    const currentPeriodRuns = runs.filter((run) => {
-      const runDate = new Date(run.started_at);
-      return runDate >= cutoffDate && (run.status === 'passed' || run.status === 'failed');
-    });
-
-    // Group runs by day for daily stats
-    const dailyMap = new Map<string, TestRun[]>();
-    
-    for (let i = 0; i < days; i++) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dateKey = date.toISOString().split('T')[0];
-      dailyMap.set(dateKey, []);
-    }
-
-    currentPeriodRuns.forEach((run) => {
-      const dateKey = run.started_at.split('T')[0];
-      if (dailyMap.has(dateKey)) {
-        dailyMap.get(dateKey)!.push(run);
-      }
-    });
-
-    // Convert to daily stats array
-    const dailyStats: DailyStats[] = Array.from(dailyMap.entries())
-      .map(([date, dayRuns]) => {
-        const totalRuns = dayRuns.length;
-        const passedRuns = dayRuns.filter((run) => run.status === 'passed').length;
-        const failedRuns = dayRuns.filter((run) => run.status === 'failed').length;
-        const passRate = totalRuns > 0 ? (passedRuns / totalRuns) * 100 : 0;
-        const avgDuration =
-          totalRuns > 0 ? dayRuns.reduce((sum, run) => sum + run.duration, 0) / totalRuns : 0;
-
-        return {
-          date,
-          totalRuns,
-          passedRuns,
-          failedRuns,
-          passRate,
-          avgDuration,
-        };
-      })
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    // Get slowest tests (top 10)
-    const slowestTests = [...currentPeriodRuns]
-      .sort((a, b) => b.duration - a.duration)
-      .slice(0, 10);
-
-    return {
-      totalRuns: metrics.totalRuns,
-      overallPassRate: metrics.successRate,
-      avgDuration: metrics.avgDuration,
-      totalTestsExecuted: metrics.totalTestsExecuted,
-      passRateTrend: metrics.successRateChange,
-      dailyStats,
-      slowestTests,
-    };
-  };
-
 
   if (loading) {
     return (

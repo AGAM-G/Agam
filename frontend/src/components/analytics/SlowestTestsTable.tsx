@@ -1,18 +1,5 @@
 import { CheckCircle, XCircle } from 'lucide-react';
-
-interface TestRun {
-  id: string;
-  run_id: string;
-  name: string;
-  status: 'pending' | 'running' | 'passed' | 'failed';
-  duration: number;
-  started_at: string;
-  completed_at?: string;
-  tests_passed: number;
-  tests_failed: number;
-  tests_pending: number;
-  total_tests: number;
-}
+import { type TestRun } from '../../lib/analyticsCalculations';
 
 interface SlowestTestsTableProps {
   tests: TestRun[];
