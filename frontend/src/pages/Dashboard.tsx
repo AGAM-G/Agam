@@ -5,11 +5,9 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Play,
-  Activity,
-  TrendingUp,
 } from 'lucide-react';
 import Header from '../components/layout/Header';
+import QuickActions from '../components/QuickActions';
 import { api } from '../lib/api';
 import { getTimeAgo, formatDuration } from '../lib/utils';
 
@@ -82,19 +80,19 @@ const Dashboard = () => {
     icon: any;
     color: string;
   }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-5 h-5" />
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-xs font-medium text-gray-600 dark:text-gray-300">{title}</h3>
+        <div className={`p-1.5 rounded-lg ${color}`}>
+          <Icon className="w-4 h-4" />
         </div>
       </div>
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
           {change !== 0 && (
             <p
-              className={`text-sm mt-1 ${
+              className={`text-xs mt-0.5 ${
                 change > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               }`}
             >
@@ -116,29 +114,29 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header
         title="Dashboard"
         onRefresh={fetchDashboardData}
         onNewTest={() => navigate('/test-runner')}
       />
 
-      <div className="p-8 space-y-8">
+      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-4 space-y-4">
         {/* Server Status */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-500" />
+            <div className="flex items-center space-x-2.5">
+              <CheckCircle className="w-4 h-4 text-green-500" />
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">Server Status</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Server Status</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Connected • Last checked: {new Date().toLocaleTimeString()}
                 </p>
               </div>
             </div>
             <button
               onClick={fetchDashboardData}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-gray-700 dark:text-gray-200"
+              className="px-2.5 py-1 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-xs font-medium text-gray-700 dark:text-gray-200"
             >
               Check
             </button>
@@ -147,10 +145,10 @@ const Dashboard = () => {
 
         {/* Dashboard Overview */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-2">
             Dashboard Overview
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <MetricCard
               title="Total Tests"
               value={metrics?.totalTests || 0}
@@ -182,45 +180,45 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* Recent Test Runs */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 Recent Test Runs
               </h3>
-              <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-full">
+              <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full">
                 Live Data
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               {recentRuns.length === 0 ? (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                <p className="text-center text-gray-500 dark:text-gray-400 py-6">
                   No test runs yet
                 </p>
               ) : (
                 recentRuns.map((run) => (
                   <div
                     key={run.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                     onClick={() => navigate(`/test-results/${run.id}`)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{run.name || run.run_id}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="font-medium text-sm text-gray-900 dark:text-white">{run.name || run.run_id}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {getTimeAgo(run.started_at)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xs text-gray-600 dark:text-gray-300">
                         {formatDuration(run.duration / 1000)}
                       </span>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           run.status === 'passed'
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                             : run.status === 'failed'
@@ -238,31 +236,31 @@ const Dashboard = () => {
           </div>
 
           {/* System Health */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                 System Health
               </h3>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">
                   {systemHealth?.status || 'Unknown'}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Test Runners</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-gray-600 dark:text-gray-300">Test Runners</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white">
                     {systemHealth?.testRunners.active || 0}/
                     {systemHealth?.testRunners.total || 0} active
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                   <div
-                    className="bg-green-500 h-2 rounded-full"
+                    className="bg-green-500 h-1.5 rounded-full"
                     style={{
                       width: systemHealth
                         ? `${
@@ -277,15 +275,15 @@ const Dashboard = () => {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Database</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-gray-600 dark:text-gray-300">Database</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white">
                     {systemHealth?.database.available || 0}% available
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                   <div
-                    className="bg-blue-500 h-2 rounded-full"
+                    className="bg-blue-500 h-1.5 rounded-full"
                     style={{
                       width: `${systemHealth?.database.available || 0}%`,
                     }}
@@ -294,9 +292,9 @@ const Dashboard = () => {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Running Tests</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600 dark:text-gray-300">Running Tests</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white">
                     {systemHealth?.runningTests || 0} active
                   </span>
                 </div>
@@ -305,62 +303,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <button
-              onClick={() => navigate('/test-runner')}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all text-left group"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition-colors">
-                  <Play className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Run Smoke Tests
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Execute critical path tests
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate('/test-runner')}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md transition-all text-left group"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg group-hover:bg-orange-100 dark:group-hover:bg-orange-900/50 transition-colors">
-                  <Activity className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Load Test</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Start performance testing
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate('/analytics')}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600 hover:shadow-md transition-all text-left group"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg group-hover:bg-green-100 dark:group-hover:bg-green-900/50 transition-colors">
-                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">View Analytics</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Check test trends</p>
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
+        <QuickActions />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Search,
   Play,
@@ -35,10 +36,13 @@ interface ActiveTestRun {
 }
 
 const TestRunner = () => {
+  const location = useLocation();
+  const initialFilter = (location.state as { filter?: string })?.filter || 'All Types';
+  
   const [testFiles, setTestFiles] = useState<TestFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('All Types');
+  const [filterType, setFilterType] = useState(initialFilter);
   const [activeTestRuns, setActiveTestRuns] = useState<ActiveTestRun[]>([]);
   const [selectedTestRunId, setSelectedTestRunId] = useState<string | null>(null);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
