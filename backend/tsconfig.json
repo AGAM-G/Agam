@@ -14,10 +14,11 @@
     "declarationMap": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "types": ["jest", "node"],
     "paths": {
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
