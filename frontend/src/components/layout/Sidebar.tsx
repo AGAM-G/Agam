@@ -6,6 +6,7 @@ import {
   BarChart3,
   Clock,
   Activity,
+  Calendar,
   Users,
   Settings,
   Zap,
@@ -21,6 +22,7 @@ const Sidebar = () => {
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/history', icon: Clock, label: 'History' },
     { path: '/monitoring', icon: Activity, label: 'Monitoring' },
+    { path: '/schedule', icon: Calendar, label: 'Schedule' },
     { path: '/team', icon: Users, label: 'Team' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];

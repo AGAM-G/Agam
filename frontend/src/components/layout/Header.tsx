@@ -1,5 +1,6 @@
-import { Search, RefreshCw, Plus, Moon, Sun, Bell } from 'lucide-react';
+import { Search, RefreshCw, Plus, Moon, Sun } from 'lucide-react';
 import { useDarkMode } from '../../contexts/DarkModeContext';
+import NotificationBell from './NotificationBell';
 
 interface HeaderProps {
   title: string;
@@ -69,6 +70,9 @@ const Header = ({
             </>
           )}
 
+          {/* Notifications */}
+          <NotificationBell />
+
           {/* Theme Toggle */}
           <button
             onClick={toggleDarkMode}
@@ -80,12 +84,6 @@ const Header = ({
             ) : (
               <Moon className="w-5 h-5 text-gray-600" />
             )}
-          </button>
-
-          {/* Notifications */}
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors relative">
-            <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
         </div>
       </div>

@@ -244,13 +244,27 @@ export const getDashboardMetrics = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Get total tests
+    // Get total tests (current)
     const totalTestsResult = await pool.query(
       'SELECT COUNT(*) as count FROM test_cases WHERE active = true'
     );
     const totalTests = parseInt(totalTestsResult.rows[0].count);
 
-    // Get recent test runs stats
+    // Get total tests from previous week for comparison
+    const prevTotalTestsResult = await pool.query(`
+      SELECT COUNT(*) as count 
+      FROM test_cases 
+      WHERE active = true 
+        AND created_at < NOW() - INTERVAL '7 days'
+    `);
+    const prevTotalTests = parseInt(prevTotalTestsResult.rows[0].count);
+
+    // Calculate total tests change
+    const totalTestsChange = prevTotalTests > 0
+      ? ((totalTests - prevTotalTests) / prevTotalTests) * 100
+      : 0;
+
+    // Get recent test runs stats (last 7 days)
     const recentRunsResult = await pool.query(`
       SELECT
         COUNT(*) FILTER (WHERE status = 'passed') as passed,
@@ -264,8 +278,9 @@ export const getDashboardMetrics = async (
     const totalRuns = parseInt(stats.passed || 0) + parseInt(stats.failed || 0);
     const successRate = totalRuns > 0 ? ((parseInt(stats.passed || 0) / totalRuns) * 100) : 0;
     const avgDuration = parseInt(stats.avg_duration || 0);
+    const failedTests = parseInt(stats.failed || 0);
 
-    // Get previous week stats for comparison
+    // Get previous week stats for comparison (14 days ago to 7 days ago)
     const previousWeekResult = await pool.query(`
       SELECT
         COUNT(*) as total_tests,
@@ -278,26 +293,36 @@ export const getDashboardMetrics = async (
 
     const prevStats = previousWeekResult.rows[0];
     const prevTotalRuns = parseInt(prevStats.total_tests || 0);
+    const prevFailedTests = parseInt(prevStats.failed || 0);
+    const prevAvgDuration = parseInt(prevStats.avg_duration || 0);
     const prevSuccessRate = prevTotalRuns > 0
       ? ((parseInt(prevStats.passed || 0) / prevTotalRuns) * 100)
       : 0;
 
-    // Calculate changes
+    // Calculate all changes (percentage change)
     const successRateChange = prevSuccessRate > 0
       ? ((successRate - prevSuccessRate) / prevSuccessRate) * 100
+      : 0;
+
+    const failedTestsChange = prevFailedTests > 0
+      ? ((failedTests - prevFailedTests) / prevFailedTests) * 100
+      : (failedTests > 0 ? 100 : 0); // If no previous failures but current failures, show 100% increase
+
+    const avgDurationChange = prevAvgDuration > 0
+      ? ((avgDuration - prevAvgDuration) / prevAvgDuration) * 100
       : 0;
 
     res.status(200).json({
       success: true,
       data: {
         totalTests,
-        totalTestsChange: 12, // Placeholder
+        totalTestsChange: Math.round(totalTestsChange),
         successRate: Math.round(successRate),
         successRateChange: Math.round(successRateChange),
-        failedTests: parseInt(stats.failed || 0),
-        failedTestsChange: -8, // Placeholder
+        failedTests,
+        failedTestsChange: Math.round(failedTestsChange),
         avgDuration: avgDuration / 1000, // Convert to seconds
-        avgDurationChange: 0,
+        avgDurationChange: Math.round(avgDurationChange),
       },
     });
   } catch (error) {
@@ -314,8 +339,10 @@ export const getSystemHealth = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Check database connection
+    // Check database connection and get stats
+    const dbStartTime = Date.now();
     await pool.query('SELECT 1');
+    const dbResponseTime = Date.now() - dbStartTime;
 
     // Get active test runs
     const activeRunsResult = await pool.query(
@@ -323,16 +350,32 @@ export const getSystemHealth = async (
     );
     const runningTests = parseInt(activeRunsResult.rows[0].count);
 
+    // Get database pool stats (real availability)
+    const poolStats = pool.totalCount;
+    const poolIdle = pool.idleCount;
+    const poolActive = poolStats - poolIdle;
+    const dbAvailability = poolStats > 0 ? Math.round((poolIdle / poolStats) * 100) : 100;
+
+    // Determine overall status
+    const isHealthy = dbResponseTime < 1000 && dbAvailability > 20;
+    const status = isHealthy ? 'healthy' : 'degraded';
+
     res.status(200).json({
       success: true,
       data: {
-        status: 'healthy',
+        status,
         testRunners: {
-          active: 8,
-          total: 8,
+          active: runningTests > 0 ? 1 : 0, // 1 runner if tests running, 0 if idle
+          total: 1, // We have 1 test execution service
         },
         database: {
-          available: 98,
+          available: dbAvailability,
+          responseTime: dbResponseTime,
+          connections: {
+            total: poolStats,
+            active: poolActive,
+            idle: poolIdle,
+          },
         },
         runningTests,
       },

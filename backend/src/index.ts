@@ -4,7 +4,11 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import testCaseRoutes from './routes/testCaseRoutes';
 import testRunRoutes from './routes/testRunRoutes';
+import scheduledTestRoutes from './routes/scheduledTestRoutes';
+import monitoringRoutes from './routes/monitoringRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import pool from './config/database';
+import testScheduler from './services/testSchedulerService';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +52,9 @@ app.get('/health', async (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tests', testCaseRoutes);
 app.use('/api/test-runs', testRunRoutes);
+app.use('/api/tests', scheduledTestRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+app.use('/api', notificationRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -78,6 +85,22 @@ app.listen(PORT, () => {
 ║   Frontend URL: ${(process.env.FRONTEND_URL || 'http://localhost:5173').padEnd(26)}║
 ╚════════════════════════════════════════════╝
   `);
+  
+  // Start the test scheduler
+  testScheduler.start();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  testScheduler.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  testScheduler.stop();
+  process.exit(0);
 });
 
 export default app;
