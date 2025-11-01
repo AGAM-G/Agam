@@ -10,9 +10,15 @@ import {
   Users,
   Settings,
   Zap,
+  X,
 } from 'lucide-react';
 
-const Sidebar = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const location = useLocation();
 
   const menuItems = [
@@ -35,17 +41,28 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0">
+    <aside className={`w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50 transition-transform duration-300 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+    }`}>
       {/* Logo */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <Zap className="w-6 h-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-600 rounded-lg">
+              <Zap className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">AutomationHub</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Test Management Platform</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">AutomationHub</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Test Management Platform</p>
-          </div>
+          {/* Close button for mobile */}
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          >
+            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </button>
         </div>
       </div>
 
@@ -59,6 +76,7 @@ const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
+              onClick={() => onClose()} // Close sidebar on mobile after navigation
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                 active
                   ? 'bg-gray-900 dark:bg-gray-700 text-white'

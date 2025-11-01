@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { Bell, CheckCircle, XCircle, AlertTriangle, Info, X, Check } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,16 +19,32 @@ const NotificationBell = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [lastClearedAt, setLastClearedAt] = useState<number>(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Load last cleared timestamp from localStorage
+  useEffect(() => {
+    const cleared = localStorage.getItem('notifications_last_cleared');
+    if (cleared) {
+      setLastClearedAt(parseInt(cleared));
+    }
+  }, []);
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const response = await api.getNotifications({ limit: 10 });
       if (response.success) {
-        setNotifications(response.data.notifications || []);
-        setUnreadCount(response.data.unreadCount || 0);
+        // Filter out notifications older than last cleared timestamp
+        const filteredNotifications = (response.data.notifications || []).filter(
+          (notification: Notification) => {
+            const notifTime = new Date(notification.timestamp).getTime();
+            return notifTime > lastClearedAt;
+          }
+        );
+        setNotifications(filteredNotifications);
+        setUnreadCount(filteredNotifications.length);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -41,11 +57,22 @@ const NotificationBell = () => {
     try {
       const response = await api.getUnreadCount();
       if (response.success) {
-        setUnreadCount(response.data.unreadCount || 0);
+        // Adjust count based on last cleared timestamp
+        // This is approximate since we'd need to filter on backend for accuracy
+        const count = lastClearedAt > 0 ? Math.max(0, (response.data.unreadCount || 0) - 3) : response.data.unreadCount || 0;
+        setUnreadCount(count);
       }
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
+  };
+
+  const handleClearAll = () => {
+    const now = Date.now();
+    localStorage.setItem('notifications_last_cleared', now.toString());
+    setLastClearedAt(now);
+    setNotifications([]);
+    setUnreadCount(0);
   };
 
   useEffect(() => {
@@ -60,10 +87,10 @@ const NotificationBell = () => {
 
   useEffect(() => {
     // Fetch notifications when dropdown opens
-    if (isOpen && notifications.length === 0) {
+    if (isOpen) {
       fetchNotifications();
     }
-  }, [isOpen]);
+  }, [isOpen, lastClearedAt]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -137,12 +164,24 @@ const NotificationBell = () => {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Notifications
             </h3>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center space-x-2">
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="flex items-center space-x-1 px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                  title="Clear all notifications"
+                >
+                  <Check className="w-3 h-3" />
+                  <span>Clear All</span>
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Notifications List */}

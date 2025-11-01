@@ -212,6 +212,27 @@ class ApiClient {
     const response = await this.client.get('/notifications/unread-count');
     return response.data;
   }
+
+  // Team/User endpoints
+  async getAllUsers() {
+    const response = await this.client.get('/auth/users');
+    return response.data;
+  }
+
+  async updateUserRole(userId: string, role: string) {
+    const response = await this.client.patch(`/auth/users/${userId}/role`, { role });
+    return response.data;
+  }
+
+  async deleteUser(userId: string) {
+    const response = await this.client.delete(`/auth/users/${userId}`);
+    return response.data;
+  }
+
+  async getUserStats(userId: string) {
+    const response = await this.client.get(`/auth/users/${userId}/stats`);
+    return response.data;
+  }
 }
 
 export const api = new ApiClient();

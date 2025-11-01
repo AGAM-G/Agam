@@ -188,3 +188,165 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+/**
+ * Get all users (for team management)
+ */
+export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id, 
+        u.email, 
+        u.name, 
+        u.role, 
+        u.created_at,
+        COUNT(tr.id) as test_runs_count
+      FROM users u
+      LEFT JOIN test_runs tr ON u.id = tr.user_id
+      GROUP BY u.id, u.email, u.name, u.role, u.created_at
+      ORDER BY u.created_at DESC
+    `);
+
+    res.status(200).json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Update user role
+ */
+export const updateUserRole = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    if (!role || !['admin', 'dev', 'tester'].includes(role)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid role. Must be admin, dev, or tester',
+      });
+      return;
+    }
+
+    const result = await pool.query(
+      `UPDATE users 
+       SET role = $1 
+       WHERE id = $2 
+       RETURNING id, email, name, role, created_at, updated_at`,
+      [role, userId]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0],
+      message: 'User role updated successfully',
+    });
+  } catch (error) {
+    console.error('Update user role error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Delete user
+ */
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = (req as any).userId;
+
+    // Prevent self-deletion
+    if (userId === currentUserId) {
+      res.status(400).json({
+        success: false,
+        error: 'You cannot delete your own account',
+      });
+      return;
+    }
+
+    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
+
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Get user statistics
+ */
+export const getUserStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    const statsQuery = `
+      SELECT 
+        COUNT(tr.id) as total_test_runs,
+        COUNT(tr.id) FILTER (WHERE tr.status = 'passed') as passed_runs,
+        COUNT(tr.id) FILTER (WHERE tr.status = 'failed') as failed_runs,
+        COUNT(st.id) as scheduled_tests_count,
+        MAX(tr.started_at) as last_test_run
+      FROM users u
+      LEFT JOIN test_runs tr ON u.id = tr.user_id
+      LEFT JOIN scheduled_tests st ON u.id = st.user_id
+      WHERE u.id = $1
+      GROUP BY u.id
+    `;
+
+    const result = await pool.query(statsQuery, [userId]);
+
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};

@@ -105,7 +105,7 @@ const History = () => {
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Test History" onRefresh={fetchTestRuns} />
 
-      <div className="flex-1 overflow-hidden px-8 pt-4 pb-4 space-y-4 flex flex-col">
+      <div className="flex-1 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 space-y-4 flex flex-col">
         {/* Filter Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">

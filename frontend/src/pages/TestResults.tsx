@@ -97,7 +97,7 @@ const TestResults = () => {
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Test Results" onRefresh={fetchTestResults} />
 
-      <div className="flex-1 overflow-hidden px-8 pt-4 pb-4 space-y-4 flex flex-col">
+      <div className="flex-1 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 space-y-4 flex flex-col">
         {/* Search and Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-4">
@@ -131,7 +131,7 @@ const TestResults = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
@@ -235,7 +235,7 @@ const TestResults = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                       <div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
