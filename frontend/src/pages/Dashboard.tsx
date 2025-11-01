@@ -133,7 +133,7 @@ const Dashboard = () => {
         onNewTest={() => navigate('/test-runner')}
       />
 
-      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 space-y-4">
         {/* Server Status */}
         <ServerStatus onRefresh={fetchDashboardData} />
 

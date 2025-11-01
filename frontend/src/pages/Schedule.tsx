@@ -147,20 +147,20 @@ const Schedule = () => {
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Test Schedule" showActions={false} />
-      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-8">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Test Schedule</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Test Schedule</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Create and manage automated test schedules
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 flex-1 sm:flex-initial"
             >
               <RefreshCw
                 className={`w-4 h-4 text-gray-600 dark:text-gray-400 ${
@@ -173,10 +173,10 @@ const Schedule = () => {
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-1 sm:flex-initial"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Create Schedule</span>
+              <span className="text-sm font-medium">Create</span>
             </button>
           </div>
         </div>
