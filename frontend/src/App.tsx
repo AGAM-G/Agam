@@ -8,6 +8,7 @@ import TestResults from './pages/TestResults';
 import Analytics from './pages/Analytics';
 import History from './pages/History';
 import Monitoring from './pages/Monitoring';
+import Schedule from './pages/Schedule';
 import Team from './pages/Team';
 import Settings from './pages/Settings';
 
@@ -105,6 +106,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Monitoring />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/schedule"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Schedule />
               </Layout>
             </ProtectedRoute>
           }

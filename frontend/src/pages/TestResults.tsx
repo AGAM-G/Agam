@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Search, Download, Filter, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Header } from '../components/layout';
 import TestDetailsModal from '../components/TestDetailsModal';
+import ConfirmModal from '../components/ConfirmModal';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/utils';
 
@@ -10,6 +11,8 @@ const TestResults = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [selectedTestRunId, setSelectedTestRunId] = useState<string | null>(null);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [testRunIdToStop, setTestRunIdToStop] = useState<string | null>(null);
 
   const fetchTestResults = async () => {
     setLoading(true);
@@ -72,11 +75,29 @@ const TestResults = () => {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
+  const handleStopTest = (testRunId: string) => {
+    setTestRunIdToStop(testRunId);
+    setShowStopConfirm(true);
+  };
+
+  const handleConfirmStop = async () => {
+    if (!testRunIdToStop) return;
+
+    try {
+      await api.stopTestRun(testRunIdToStop);
+      fetchTestResults(); // Refresh the list
+      setSelectedTestRunId(null); // Close the modal
+      setTestRunIdToStop(null);
+    } catch (error) {
+      console.error('Error stopping test run:', error);
+    }
+  };
+
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Test Results" onRefresh={fetchTestResults} />
 
-      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-4 space-y-4">
+      <div className="flex-1 overflow-hidden px-8 pt-4 pb-4 space-y-4 flex flex-col">
         {/* Search and Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-4">
@@ -165,15 +186,15 @@ const TestResults = () => {
         </div>
 
         {/* Recent Test Runs */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <h2 className="text-base font-bold text-gray-900 dark:text-white">Recent Test Runs</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Latest {testRuns.length} test executions
             </p>
           </div>
 
-          <div className="p-4">
+          <div className="p-4 flex-1 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -264,8 +285,24 @@ const TestResults = () => {
           <TestDetailsModal
             testRunId={selectedTestRunId}
             onClose={() => setSelectedTestRunId(null)}
+            onStop={handleStopTest}
           />
         )}
+
+        {/* Stop Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showStopConfirm}
+          onConfirm={handleConfirmStop}
+          onCancel={() => {
+            setShowStopConfirm(false);
+            setTestRunIdToStop(null);
+          }}
+          title="Stop Test Run"
+          message="Are you sure you want to stop this test run? This will terminate all running tests immediately."
+          confirmText="Stop Test"
+          cancelText="Cancel"
+          type="warning"
+        />
       </div>
     </div>
   );

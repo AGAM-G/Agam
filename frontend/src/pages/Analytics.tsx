@@ -173,7 +173,7 @@ const Analytics = () => {
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Analytics" onRefresh={() => fetchAnalytics(true)} />
 
-      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-4 space-y-4">
+      <div className="flex-1 overflow-hidden px-8 pt-4 pb-4 space-y-4 flex flex-col">
         {/* Time Range Selector */}
         <AnalyticsHeader
           isFromCache={isFromCache}
@@ -210,8 +210,8 @@ const Analytics = () => {
         </div>
 
         {/* Slowest Tests Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 overflow-hidden flex flex-col min-h-0">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <h3 className="text-base font-bold text-gray-900 dark:text-white">
               Slowest Test Runs
             </h3>
@@ -219,7 +219,7 @@ const Analytics = () => {
               Top 10 longest running tests in the selected period
             </p>
           </div>
-          <div className="p-4">
+          <div className="p-4 flex-1 overflow-y-auto">
             <SlowestTestsTable tests={analytics.slowestTests} />
           </div>
         </div>

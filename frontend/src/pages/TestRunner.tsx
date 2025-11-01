@@ -277,7 +277,7 @@ const TestRunner = () => {
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
       <Header title="Test Runner" onRefresh={fetchTestFiles} />
 
-      <div className="flex-1 overflow-y-auto px-8 pt-4 pb-4 space-y-4">
+      <div className="flex-1 overflow-hidden px-8 pt-4 pb-4 space-y-4 flex flex-col">
         {/* Controls */}
         <TestControlsBar
           onDiscoverTests={handleDiscoverTests}
@@ -291,8 +291,8 @@ const TestRunner = () => {
         />
 
         {/* Test Cases */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-gray-900 dark:text-white">
@@ -312,7 +312,7 @@ const TestRunner = () => {
             </div>
           </div>
 
-          <div className="p-4">
+          <div className="p-4 flex-1 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

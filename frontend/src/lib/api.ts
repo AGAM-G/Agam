@@ -149,6 +149,69 @@ class ApiClient {
     const response = await this.client.get('/test-runs/dashboard/system-health');
     return response.data;
   }
+
+  // Monitoring endpoints
+  async getActiveTests(params?: { limit?: number }) {
+    const response = await this.client.get('/monitoring/active-tests', { params });
+    return response.data;
+  }
+
+  async getSystemHealthDetailed() {
+    const response = await this.client.get('/monitoring/system-health');
+    return response.data;
+  }
+
+  async getSystemAlerts() {
+    const response = await this.client.get('/monitoring/alerts');
+    return response.data;
+  }
+
+  async getExecutionStats(params?: { timeRange?: string }) {
+    const response = await this.client.get('/monitoring/stats', { params });
+    return response.data;
+  }
+
+  // Scheduled Tests endpoints
+  async getScheduledTests(params?: { enabled?: boolean; scheduleType?: string }) {
+    const response = await this.client.get('/tests/scheduled', { params });
+    return response.data;
+  }
+
+  async getScheduledTestById(id: string) {
+    const response = await this.client.get(`/tests/scheduled/${id}`);
+    return response.data;
+  }
+
+  async createScheduledTest(data: any) {
+    const response = await this.client.post('/tests/scheduled', data);
+    return response.data;
+  }
+
+  async updateScheduledTest(id: string, data: any) {
+    const response = await this.client.put(`/tests/scheduled/${id}`, data);
+    return response.data;
+  }
+
+  async deleteScheduledTest(id: string) {
+    const response = await this.client.delete(`/tests/scheduled/${id}`);
+    return response.data;
+  }
+
+  async toggleScheduledTest(id: string, enabled: boolean) {
+    const response = await this.client.patch(`/tests/scheduled/${id}/toggle`, { enabled });
+    return response.data;
+  }
+
+  // Notification endpoints
+  async getNotifications(params?: { limit?: number }) {
+    const response = await this.client.get('/notifications', { params });
+    return response.data;
+  }
+
+  async getUnreadCount() {
+    const response = await this.client.get('/notifications/unread-count');
+    return response.data;
+  }
 }
 
 export const api = new ApiClient();
