@@ -168,5 +168,5 @@ export class TestSchedulerService {
 }
 
 // Export singleton instance
-export default new TestSchedulerService(1); // Check every 1 minute
+export default new TestSchedulerService(0.5); // Check every 30 seconds
 
